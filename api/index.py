@@ -3,6 +3,7 @@ import os
 from discord.ext import commands
 from core.commands.onlinefix.index import online_fix
 from core.commands.top.index import top
+from core.commands.cleant.index import cleant
 from dotenv import load_dotenv
 from infra.config.index import Config
 
@@ -17,6 +18,7 @@ bot = commands.Bot(command_prefix="/", intents=intents)
 
 bot.add_command(online_fix) 
 bot.add_command(top)
+bot.add_command(cleant)
 
 @bot.event
 async def on_guild_join(guild: discord.Guild):
