@@ -1,16 +1,18 @@
-import requests
 import os
-from core.commands.onlinefix.interface import OnlineFixCommandInterface
-from discord.ext import commands
+import requests
 import discord
-
+from discord.ext import commands
 from dotenv import load_dotenv
+from core.commands.onlinefix.interface import OnlineFixCommandInterface
+from core.modules.steam.index import SteamSearch
+
 load_dotenv()
 
 class OnlineFixCommand(OnlineFixCommandInterface):
     def __init__(self, bot: commands.Bot, base_url: str):
         self.bot = bot
         self.base_url = base_url
+        self.steam_search = SteamSearch(base_url)
 
     async def search_files(self, search_term: str):
         try:
@@ -52,7 +54,14 @@ class OnlineFixCommand(OnlineFixCommandInterface):
             await just_download_channel.send("Canal 'just-download' criado!")
 
         if matches:
+            
             for match in matches:
+                steam_matches = await self.steam_search.search_steam_games(match['title'])
+                game_details = None
+                
+                if steam_matches:
+                    game_details = await self.steam_search.get_steam_game_details(steam_matches[0]['appid'])
+
                 embed = discord.Embed(
                     title="🎯 Resultado Encontrado",
                     color=discord.Color.blue()
@@ -61,10 +70,16 @@ class OnlineFixCommand(OnlineFixCommandInterface):
                 embed.add_field(name="Tamanho do Arquivo", value=match['fileSize'], inline=True)
                 embed.add_field(name="Data de Upload", value=match['uploadDate'], inline=True)
                 embed.add_field(
-                    name="Magnet Link",
-                    value=f"[Clique aqui para baixar]({match['uris'][0]})",
+                    name="Magnet Link : ",
+                    value={match['uris'][0]},
                     inline=False
                 )
+
+                if game_details:
+                    embed.add_field(name="Jogo na Steam", value=game_details.get('name', 'Desconhecido'), inline=False)
+                    embed.add_field(name="Descrição", value=game_details.get('short_description', 'Não disponível'), inline=False)
+                    embed.add_field(name="Preço", value=game_details.get('price_overview', {}).get('final_formatted', 'Gratuito'), inline=True)
+
                 embed.set_footer(text="Buscas realizadas com sucesso! 🎮")
                 await just_download_channel.send(embed=embed)
                 await just_download_channel.send("---------------------------------------------------")
@@ -72,7 +87,7 @@ class OnlineFixCommand(OnlineFixCommandInterface):
             await just_download_channel.send("🔍 Nenhum arquivo encontrado.")
 
 @commands.command()
-async def online_fix(ctx, *, search_term: str):
+async def onlinef(ctx, *, search_term: str):
     base_url = os.getenv("BASE_URL")
     if not base_url:
         await ctx.send("⚠️ URL da API não configurada. Verifique o arquivo .env.")
