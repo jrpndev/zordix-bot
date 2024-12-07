@@ -1,2 +1,11 @@
+# Ignorar o arquivo de ambiente
 .env
+
+
+# Ignorar pastas de ambientes virtuais
 venv/
+
+# Ignorar caches do Python
+__pycache__/
+*.pyc
+*.pyo
