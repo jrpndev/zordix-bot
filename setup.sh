@@ -23,4 +23,4 @@ pip install -r requirements.txt
 
 # Executa o script index.py
 echo "Executando o script index.py..."
-python index.py
+python -m api.index
