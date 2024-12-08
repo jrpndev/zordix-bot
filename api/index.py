@@ -6,9 +6,22 @@ from core.commands.top.index import top
 from core.commands.cleant.index import cleant
 from dotenv import load_dotenv
 from infra.config.index import Config
+from flask import Flask
+import threading
 
 load_dotenv()
 
+# Flask setup for Render
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    return "Bot is running!"
+
+def run_flask():
+    app.run(host="0.0.0.0", port=8000)
+
+# Discord bot setup
 TOKEN = os.getenv("TOKEN")
 intents = discord.Intents.default()
 intents.messages = True
@@ -36,4 +49,8 @@ async def on_guild_join(guild: discord.Guild):
     
     await config.create_channel(guild, "just-download", permissions)
 
+# Start Flask in a separate thread
+threading.Thread(target=run_flask).start()
+
+# Run Discord bot
 bot.run(TOKEN)
